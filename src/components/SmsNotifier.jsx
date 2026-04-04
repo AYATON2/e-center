@@ -1,39 +1,39 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../lib/db';
+import { supabase } from '../lib/supabase';
 
 export default function SmsNotifier() {
-  const encounters = useLiveQuery(() => db.encounters.where('status').equals('Completed').toArray()) || [];
-  const patients = useLiveQuery(() => db.patients.toArray()) || [];
-  
   // Ref to prevent overlapping execution
   const isChecking = useRef(false);
 
   useEffect(() => {
-    if (encounters.length === 0 || patients.length === 0) return;
-
     const checkAndSendSMS = async () => {
       if (isChecking.current) return;
       isChecking.current = true;
       
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      try {
+        const { data: encounters } = await supabase.from('encounters').select('*').eq('status', 'Completed').eq('sms_reminder_sent', false);
+        if (!encounters || encounters.length === 0) {
+          isChecking.current = false;
+          return;
+        }
 
-      for (const enc of encounters) {
-        // If they have an appointment tomorrow and we haven't sent a reminder yet
-        if (enc.next_appointment === tomorrowStr && !enc.sms_reminder_sent) {
-          const patient = patients.find(p => p.id === enc.patient_id);
-          if (patient && patient.contact_number) {
-            
-            const msg = `Hi ${patient.full_name}, this is a reminder from BHCMS for your upcoming check-up tomorrow (${tomorrowStr}). Please arrive early.`;
-            
-            try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        for (const enc of encounters) {
+          // If they have an appointment tomorrow and we haven't sent a reminder yet
+          if (enc.next_appointment === tomorrowStr && !enc.sms_reminder_sent) {
+            const { data: patient } = await supabase.from('patients').select('*').eq('id', enc.patient_id).single();
+            if (patient && patient.contact_number) {
+              
+              const msg = `Hi ${patient.full_name}, this is a reminder from BHCMS for your upcoming check-up tomorrow (${tomorrowStr}). Please arrive early.`;
+              
               const res = await fetch('/api/send-sms', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -45,16 +45,15 @@ export default function SmsNotifier() {
               });
               
               if (res.ok) {
-                // Mark as sent in Dexie to avoid spamming
-                await db.encounters.update(enc.id, { sms_reminder_sent: true });
-                // Alert the user on the screen so they know the background job fired
+                // Mark as sent in Supabase to avoid spamming
+                await supabase.from('encounters').update({ sms_reminder_sent: true }).eq('id', enc.id);
                 alert(`🔔 SMS Reminder Sent to ${patient.full_name} (${patient.contact_number}) for tomorrow's appointment!`);
               }
-            } catch (err) {
-              console.error("SMS Error:", err);
             }
           }
         }
+      } catch (err) {
+        console.error("SMS Error:", err);
       }
       
       isChecking.current = false;
@@ -65,7 +64,7 @@ export default function SmsNotifier() {
     const interval = setInterval(checkAndSendSMS, 10000); // check every 10 seconds for demo
     return () => clearInterval(interval);
 
-  }, [encounters, patients]);
+  }, []);
 
   return null; // Invisible background component
 }

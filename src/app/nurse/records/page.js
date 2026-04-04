@@ -1,18 +1,27 @@
 "use client";
 
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../../lib/db';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../../lib/supabase';
 import { FileText, Search, Activity, Calendar } from 'lucide-react';
-import { useState } from 'react';
 
 export default function RecordsDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const allCompletedEncounters = useLiveQuery(() => db.encounters.where('status').equals('Completed').reverse().toArray()) || [];
-  const patients = useLiveQuery(() => db.patients.toArray()) || [];
+  const [patients, setPatients] = useState([]);
+  const [encounters, setEncounters] = useState([]);
 
-  const filteredEncounters = allCompletedEncounters.filter(enc => {
-    const p = patients.find(p => p.id === enc.patient_id);
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: ptData } = await supabase.from('patients').select('*');
+      const { data: encData } = await supabase.from('encounters').select('*').eq('status', 'Completed').order('created_at', { ascending: false });
+      
+      if (ptData) setPatients(ptData);
+      if (encData) setEncounters(encData);
+    };
+    fetchData();
+  }, []);
+
+  const filteredEncounters = encounters.filter(enc => {
+    const p = patients.find(p => String(p.id) === String(enc.patient_id));
     if (!p) return false;
     return p.full_name.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -41,12 +50,12 @@ export default function RecordsDashboard() {
         {filteredEncounters.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-secondary)' }}>
             <FileText size={48} style={{ opacity: 0.2, margin: '0 auto 1rem' }} />
-            <p>No completed encounters found.</p>
+            <p>No completed encounters found in Supabase.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gap: '1.5rem' }}>
             {filteredEncounters.map(encounter => {
-              const pat = patients.find(p => p.id === encounter.patient_id);
+              const pat = patients.find(p => String(p.id) === String(encounter.patient_id));
               return (
                 <div key={encounter.id} className="glass-panel" style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 2fr', gap: '2rem' }}>
                   <div style={{ borderRight: '1px solid var(--border-color)', paddingRight: '2rem' }}>

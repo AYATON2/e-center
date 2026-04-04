@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { UserPlus, Users, CheckCircle } from 'lucide-react';
 
 export default function StaffDashboard() {
@@ -17,26 +16,39 @@ export default function StaffDashboard() {
   });
   
   const [successMsg, setSuccessMsg] = useState(false);
+  const [patients, setPatients] = useState([]);
 
-  const patients = useLiveQuery(() => db.patients.toArray()) || [];
+  const fetchPatients = async () => {
+    const { data } = await supabase.from('patients').select('*');
+    if (data) setPatients(data);
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const patientId = await db.patients.add(formData);
-      // Immediately add to queue for the Nurse
-      await db.encounters.add({
+      const { data: ptData, error: ptError } = await supabase.from('patients').insert([formData]).select();
+      if (ptError) throw ptError;
+      
+      const patientId = ptData[0].id;
+      
+      const { error: encError } = await supabase.from('encounters').insert([{
         patient_id: patientId,
         encounter_date: new Date().toISOString().split('T')[0],
         time_in: new Date().toLocaleTimeString(),
         status: 'Queued',
         priority_group: formData.priority_group
-      });
+      }]);
+      if (encError) throw encError;
       
       setSuccessMsg(true);
       setTimeout(() => setSuccessMsg(false), 3000);
       
       setFormData({ philhealth_no: '', full_name: '', dob: '', sex: 'Male', purok_address: '', contact_number: '', priority_group: 'General' });
+      fetchPatients();
     } catch (err) {
       console.error(err);
     }
@@ -68,7 +80,7 @@ export default function StaffDashboard() {
         
         {successMsg && (
           <div className="animate-fade-in" style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckCircle size={18} /> Patient properly registered and sent to Nurse queue!
+            <CheckCircle size={18} /> Patient properly registered and sent to internal Supabase queue!
           </div>
         )}
 

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../../lib/db';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../../lib/supabase';
 import { Package, Plus, Syringe, Pill, Archive } from 'lucide-react';
 
 export default function InventoryDashboard() {
@@ -14,17 +13,29 @@ export default function InventoryDashboard() {
     expiration_date: ''
   });
 
-  const inventory = useLiveQuery(() => db.inventory.toArray()) || [];
+  const [inventory, setInventory] = useState([]);
+
+  const fetchInventory = async () => {
+    const { data } = await supabase.from('inventory').select('*').order('item_name', { ascending: true });
+    if (data) setInventory(data);
+  };
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
 
   const handleAddItem = async (e) => {
     e.preventDefault();
     try {
-      await db.inventory.add({
+      const { error } = await supabase.from('inventory').insert([{
         ...formData,
         quantity_on_hand: parseInt(formData.quantity_on_hand)
-      });
+      }]);
+      if (error) throw error;
+      
       setShowAddItem(false);
       setFormData({ item_name: '', category: 'Medication', quantity_on_hand: 0, expiration_date: '' });
+      fetchInventory();
     } catch (err) {
       console.error(err);
     }
@@ -32,7 +43,8 @@ export default function InventoryDashboard() {
 
   const handleStockAdj = async (id, currentQty, amount) => {
     const newQty = Math.max(0, currentQty + amount);
-    await db.inventory.update(id, { quantity_on_hand: newQty });
+    await supabase.from('inventory').update({ quantity_on_hand: newQty }).eq('id', id);
+    fetchInventory();
   };
 
   const getIconForCategory = (cat) => {
@@ -48,7 +60,7 @@ export default function InventoryDashboard() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Inventory Tracking</h1>
-          <p className="page-description">Manage stocks of vaccines, medications, and supplies</p>
+          <p className="page-description">Manage live Supabase stocks of vaccines, medications, and supplies</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowAddItem(!showAddItem)}>
           <Plus size={18} /> {showAddItem ? 'Cancel' : 'Add New Item'}
@@ -119,7 +131,7 @@ export default function InventoryDashboard() {
         
         {inventory.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
-            <p>No inventory items found. Add some to get started.</p>
+            <p>No inventory items found in Supabase. Add some to get started.</p>
           </div>
         ) : (
           <div style={{ marginLeft: '-1.5rem', marginRight: '-1.5rem' }}>
