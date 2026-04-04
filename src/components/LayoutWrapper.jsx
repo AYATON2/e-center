@@ -1,17 +1,65 @@
 "use client";
-import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '../lib/supabase';
 import Sidebar from './Sidebar';
 
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
-  
+  const router = useRouter();
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check active session on load
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      enforceRules(currentSession);
+      setLoading(false);
+    });
+
+    // Listen continuously for logout / login overrides
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      enforceRules(newSession);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [pathname]);
+
+  const enforceRules = (currentSession) => {
+    if (pathname === '/') return; // Login page is completely unrestricted
+    
+    if (!currentSession) {
+      router.push('/');
+      return;
+    }
+
+    const role = currentSession.user?.user_metadata?.role || 'Staff'; // Default mapping safety
+    
+    // Hard restrictions blocking lateral role movement
+    if (pathname.startsWith('/admin') && role !== 'Admin') {
+      router.push('/');
+    } else if (pathname.startsWith('/nurse') && role !== 'Nurse' && role !== 'Admin') {
+      router.push('/');
+    } else if (pathname.startsWith('/staff') && role !== 'Staff' && role !== 'Admin') {
+      router.push('/');
+    }
+  };
+
+  if (loading) return (
+    <div style={{minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background: 'var(--bg-primary)', color: 'var(--primary-color)', fontSize: '1.25rem', fontWeight: 600}}>
+      Verifying Security Block...
+    </div>
+  );
+
   if (pathname === '/') {
     return <main>{children}</main>;
   }
   
   return (
     <div className="dashboard-layout">
-      <Sidebar />
+      <Sidebar role={session?.user?.user_metadata?.role || 'Staff'} email={session?.user?.email} />
       <main className="main-content">
         {children}
       </main>

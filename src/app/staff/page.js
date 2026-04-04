@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { UserPlus, Users, CheckCircle } from 'lucide-react';
+import { UserPlus, Users, CheckCircle, Search, ArrowRight } from 'lucide-react';
 
 export default function StaffDashboard() {
   const [formData, setFormData] = useState({
@@ -15,11 +15,12 @@ export default function StaffDashboard() {
     priority_group: 'General'
   });
   
-  const [successMsg, setSuccessMsg] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
   const [patients, setPatients] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchPatients = async () => {
-    const { data } = await supabase.from('patients').select('*');
+    const { data } = await supabase.from('patients').select('*').order('created_at', { ascending: false });
     if (data) setPatients(data);
   };
 
@@ -44,8 +45,8 @@ export default function StaffDashboard() {
       }]);
       if (encError) throw encError;
       
-      setSuccessMsg(true);
-      setTimeout(() => setSuccessMsg(false), 3000);
+      setSuccessMsg('New Patient properly registered and sent to queue!');
+      setTimeout(() => setSuccessMsg(''), 4000);
       
       setFormData({ philhealth_no: '', full_name: '', dob: '', sex: 'Male', purok_address: '', contact_number: '', priority_group: 'General' });
       fetchPatients();
@@ -54,12 +55,34 @@ export default function StaffDashboard() {
     }
   };
 
+  const handleReturningCheckIn = async (patient) => {
+    try {
+      const { error: encError } = await supabase.from('encounters').insert([{
+        patient_id: patient.id,
+        encounter_date: new Date().toISOString().split('T')[0],
+        time_in: new Date().toLocaleTimeString(),
+        status: 'Queued',
+        priority_group: patient.priority_group
+      }]);
+      
+      if (encError) throw encError;
+      
+      setSearchTerm('');
+      setSuccessMsg(`Returning patient ${patient.full_name} has been added to the active queue!`);
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const filteredPatients = searchTerm.trim() === '' ? [] : patients.filter(p => p.full_name.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 5);
+
   return (
     <div className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Patient Intake</h1>
-          <p className="page-description">Add new patients to the clinic record and assign to queue</p>
+          <h1 className="page-title">Patient Intake & Registration</h1>
+          <p className="page-description">Check-in returning patients or profile entirely new patients to the clinical queue</p>
         </div>
       </div>
 
@@ -68,9 +91,54 @@ export default function StaffDashboard() {
           <div className="stat-icon"><Users size={24} /></div>
           <div>
             <div className="stat-value">{patients.length}</div>
-            <div className="stat-label">Total Registered Patients</div>
+            <div className="stat-label">Total Registered Profiles</div>
           </div>
         </div>
+      </div>
+
+      {successMsg && (
+        <div className="animate-fade-in" style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid #bbf7d0' }}>
+          <CheckCircle size={18} /> {successMsg}
+        </div>
+      )}
+
+      {/* Returning Patient Check-In */}
+      <div className="card" style={{ marginBottom: '2rem' }}>
+        <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Search size={18} /> Returning Patient Check-In
+        </h3>
+        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Search for an existing patient to instantly queue them for consultation without re-registering.</p>
+        
+        <div style={{ position: 'relative', marginBottom: '1rem' }}>
+          <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+          <input 
+            type="text" 
+            className="input" 
+            style={{ paddingLeft: '2.5rem' }} 
+            placeholder="Search existing profile by name..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {filteredPatients.length > 0 && (
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+            {filteredPatients.map(p => (
+              <div key={p.id} style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{p.full_name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '0.5rem' }}>
+                    <span>DOB: {p.dob}</span>
+                    <span>| Priority: {p.priority_group}</span>
+                  </div>
+                </div>
+                <button onClick={() => handleReturningCheckIn(p)} className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.875rem' }}>
+                  Check-In <ArrowRight size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ marginBottom: '2rem' }}>
@@ -78,12 +146,6 @@ export default function StaffDashboard() {
           <UserPlus size={18} /> New Patient Registration
         </h3>
         
-        {successMsg && (
-          <div className="animate-fade-in" style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckCircle size={18} /> Patient properly registered and sent to internal Supabase queue!
-          </div>
-        )}
-
         <form onSubmit={handleRegister} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
           <div>
             <label className="label">Full Name</label>
