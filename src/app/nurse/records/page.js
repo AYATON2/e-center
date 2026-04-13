@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { FileText, Search, Activity, Calendar } from 'lucide-react';
+import { FileText, Search, Activity, Calendar, MessageSquare } from 'lucide-react';
+import SendSmsModal from '../../../components/SendSmsModal';
 
 export default function RecordsDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [patients, setPatients] = useState([]);
   const [encounters, setEncounters] = useState([]);
+  const [smsModalPatient, setSmsModalPatient] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,8 +66,18 @@ export default function RecordsDashboard() {
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Calendar size={14} /> {encounter.encounter_date}</span>
                       <span>Priority: <span style={{ fontWeight: 500, color: 'var(--primary-color)' }}>{pat?.priority_group}</span></span>
                       <span>Sex: {pat?.sex} | DOB: {pat?.dob}</span>
-                      <span style={{ color: 'var(--text-primary)', marginTop: '0.25rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <span style={{ color: 'var(--text-primary)', marginTop: '0.25rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         📍 {pat?.purok_address} | 📞 {pat?.contact_number || 'N/A'}
+                        {pat && (
+                          <button 
+                            className="btn btn-secondary" 
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.1rem 0.4rem', fontSize: '0.75rem', marginLeft: '0.5rem' }} 
+                            onClick={() => setSmsModalPatient(pat)}
+                            title="Send custom SMS"
+                          >
+                            <MessageSquare size={12} /> SMS
+                          </button>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -100,6 +112,10 @@ export default function RecordsDashboard() {
           </div>
         )}
       </div>
+
+      {smsModalPatient && (
+        <SendSmsModal patient={smsModalPatient} onClose={() => setSmsModalPatient(null)} />
+      )}
     </div>
   );
 }

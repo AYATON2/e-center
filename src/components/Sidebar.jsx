@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
-import { UserPlus, Stethoscope, Package, FileText, LogOut, Shield } from 'lucide-react';
+import { UserPlus, Stethoscope, Package, FileText, LogOut, Shield, Calendar } from 'lucide-react';
 
 export default function Sidebar({ role, email }) {
   const pathname = usePathname();
@@ -51,6 +51,9 @@ export default function Sidebar({ role, email }) {
             </Link>
             <Link href="/staff/inventory" className={`nav-item ${pathname === '/staff/inventory' ? 'active' : ''}`}>
               <Package size={18} /> Central Inventory
+            </Link>
+            <Link href="/staff/schedule" className={`nav-item ${pathname === '/staff/schedule' ? 'active' : ''}`}>
+              <Calendar size={18} /> Public Schedule
             </Link>
           </>
         )}

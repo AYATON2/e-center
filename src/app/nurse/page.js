@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Stethoscope, CheckCircle, Activity, HeartPulse, User } from 'lucide-react';
+import { Stethoscope, CheckCircle, Activity, HeartPulse, User, MessageSquare } from 'lucide-react';
+import SendSmsModal from '../../components/SendSmsModal';
 
 export default function NurseDashboard() {
   const [activeEncounterId, setActiveEncounterId] = useState(null);
@@ -16,6 +17,7 @@ export default function NurseDashboard() {
   const [activeEncounters, setActiveEncounters] = useState([]);
   const [patients, setPatients] = useState([]);
   const [inventory, setInventory] = useState([]);
+  const [smsModalPatient, setSmsModalPatient] = useState(null);
 
   const fetchData = async () => {
     const [encRes, ptRes, invRes] = await Promise.all([
@@ -156,7 +158,15 @@ export default function NurseDashboard() {
         <div className="card animate-fade-in" style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)' }}>
           
           <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>{activePatient.full_name}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>{activePatient.full_name}</h2>
+              <button 
+                className="btn btn-secondary" 
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.8rem' }} 
+                onClick={() => setSmsModalPatient(activePatient)}>
+                <MessageSquare size={16} /> SMS Patient
+              </button>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', fontSize: '0.875rem' }}>
               <div><span style={{ color: 'var(--text-secondary)' }}>Sex:</span> {activePatient.sex}</div>
               <div><span style={{ color: 'var(--text-secondary)' }}>Group:</span> {activePatient.priority_group}</div>
@@ -247,6 +257,9 @@ export default function NurseDashboard() {
         </div>
       )}
 
+      {smsModalPatient && (
+        <SendSmsModal patient={smsModalPatient} onClose={() => setSmsModalPatient(null)} />
+      )}
     </div>
   );
 }
