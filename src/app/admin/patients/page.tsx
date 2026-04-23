@@ -226,8 +226,8 @@ export default function AdminPatientManagement() {
                           <button 
                             onClick={() => handleDeleteEncounter(enc.id)}
                             style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', opacity: 0.5 }}
-                            onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-                            onMouseLeave={(e) => e.currentTarget.style.opacity = 0.5}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
                           >
                             <Trash2 size={16} />
                           </button>
