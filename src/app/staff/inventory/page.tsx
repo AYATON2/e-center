@@ -29,7 +29,7 @@ export default function InventoryDashboard() {
     try {
       const { error } = await supabase.from('inventory').insert([{
         ...formData,
-        quantity_on_hand: parseInt(formData.quantity_on_hand)
+        quantity_on_hand: Number(formData.quantity_on_hand)
       }]);
       if (error) throw error;
       
