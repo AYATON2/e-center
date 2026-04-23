@@ -139,7 +139,7 @@ export default function AdminDashboard() {
                 ))}
                 {users.length === 0 && (
                   <tr>
-                    <td colSpan="4" style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-secondary)' }}>No personnel registered currently. Add one to begin.</td>
+                    <td colSpan={4} style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-secondary)' }}>No personnel registered currently. Add one to begin.</td>
                   </tr>
                 )}
               </tbody>
