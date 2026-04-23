@@ -1,8 +1,7 @@
 import "./globals.css";
+import { Suspense } from 'react';
 import LayoutWrapper from "../components/LayoutWrapper";
 import SmsNotifier from "../components/SmsNotifier";
-
-export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: "BHCMS | Barangay Health Center",
@@ -16,10 +15,12 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body>
-        <SmsNotifier />
-        <LayoutWrapper>
-          {children}
-        </LayoutWrapper>
+        <Suspense fallback={null}>
+          <SmsNotifier />
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
+        </Suspense>
       </body>
     </html>
   );
