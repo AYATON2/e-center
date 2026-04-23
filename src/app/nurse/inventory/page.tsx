@@ -32,7 +32,7 @@ export default function InventoryDashboard() {
         quantity_on_hand: parseInt(formData.quantity_on_hand)
       }]);
       if (error) throw error;
-      
+
       setShowAddItem(false);
       setFormData({ item_name: '', category: 'Medication', quantity_on_hand: 0, expiration_date: '' });
       fetchInventory();
@@ -48,7 +48,7 @@ export default function InventoryDashboard() {
   };
 
   const getIconForCategory = (cat) => {
-    switch(cat) {
+    switch (cat) {
       case 'Vaccine': return <Syringe size={16} />;
       case 'Medication': return <Pill size={16} />;
       default: return <Archive size={16} />;
@@ -69,21 +69,21 @@ export default function InventoryDashboard() {
 
       <div className="stat-grid">
         <div className="stat-card">
-          <div className="stat-icon" style={{color: 'var(--success-color)'}}><Pill size={24} /></div>
+          <div className="stat-icon" style={{ color: 'var(--success-color)' }}><Pill size={24} /></div>
           <div>
             <div className="stat-value">{inventory.filter(i => i.category === 'Medication').length}</div>
             <div className="stat-label">Medications</div>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{color: 'var(--primary-color)'}}><Syringe size={24} /></div>
+          <div className="stat-icon" style={{ color: 'var(--primary-color)' }}><Syringe size={24} /></div>
           <div>
             <div className="stat-value">{inventory.filter(i => i.category === 'Vaccine').length}</div>
             <div className="stat-label">Vaccines</div>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{color: 'var(--warning-color)'}}><Archive size={24} /></div>
+          <div className="stat-icon" style={{ color: 'var(--warning-color)' }}><Archive size={24} /></div>
           <div>
             <div className="stat-value">{inventory.filter(i => i.category === 'Supply').length}</div>
             <div className="stat-label">General Supplies</div>
@@ -97,24 +97,24 @@ export default function InventoryDashboard() {
           <form onSubmit={handleAddItem} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div>
               <label className="label">Item Name</label>
-              <input type="text" className="input" required value={formData.item_name} onChange={e => setFormData({...formData, item_name: e.target.value})} placeholder="e.g. Amoxicillin 500mg" />
+              <input type="text" className="input" required value={formData.item_name} onChange={e => setFormData({ ...formData, item_name: e.target.value })} placeholder="e.g. Amoxicillin 500mg" />
             </div>
             <div>
               <label className="label">Category</label>
-              <select className="input" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+              <select className="input" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
                 <option value="Medication">Medication</option>
                 <option value="Vaccine">Vaccine</option>
                 <option value="Supply">Supply</option>
               </select>
             </div>
-            
+
             <div>
               <label className="label">Initial Quantity</label>
-              <input type="number" className="input" required min="0" value={formData.quantity_on_hand} onChange={e => setFormData({...formData, quantity_on_hand: e.target.value})} />
+              <input type="number" className="input" required min="0" value={formData.quantity_on_hand} onChange={e => setFormData({ ...formData, quantity_on_hand: e.target.value })} />
             </div>
             <div>
               <label className="label">Expiration Date (if applicable)</label>
-              <input type="date" className="input" value={formData.expiration_date} onChange={e => setFormData({...formData, expiration_date: e.target.value})} />
+              <input type="date" className="input" value={formData.expiration_date} onChange={e => setFormData({ ...formData, expiration_date: e.target.value })} />
             </div>
 
             <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
@@ -128,7 +128,7 @@ export default function InventoryDashboard() {
         <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Package size={18} /> Current Stock levels
         </h3>
-        
+
         {inventory.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
             <p>No inventory items found in Supabase. Add some to get started.</p>

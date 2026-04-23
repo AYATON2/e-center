@@ -20,7 +20,13 @@ export default function StaffDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchPatients = async () => {
-    const { data } = await supabase.from('patients').select('*').order('created_at', { ascending: false });
+    // Only fetch non-archived patients for clinical intake
+    const { data } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('is_archived', false)
+      .order('created_at', { ascending: false });
+    
     if (data) setPatients(data);
   };
 
@@ -31,7 +37,10 @@ export default function StaffDashboard() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const { data: ptData, error: ptError } = await supabase.from('patients').insert([formData]).select();
+      const { data: ptData, error: ptError } = await supabase.from('patients').insert([{
+        ...formData,
+        is_archived: false
+      }]).select();
       if (ptError) throw ptError;
       
       const patientId = ptData[0].id;
