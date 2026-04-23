@@ -110,7 +110,7 @@ export default function InventoryDashboard() {
 
             <div>
               <label className="label">Initial Quantity</label>
-              <input type="number" className="input" required min="0" value={formData.quantity_on_hand} onChange={e => setFormData({ ...formData, quantity_on_hand: e.target.value })} />
+              <input type="number" className="input" required min="0" value={formData.quantity_on_hand} onChange={e => setFormData({ ...formData, quantity_on_hand: Number(e.target.value) })} />
             </div>
             <div>
               <label className="label">Expiration Date (if applicable)</label>
