@@ -13,6 +13,7 @@ export default function NurseDashboard() {
   const [dispensedItems, setDispensedItems] = useState([]);
   const [selectedInvId, setSelectedInvId] = useState('');
   const [dispenseQty, setDispenseQty] = useState(1);
+  const [isCleared, setIsCleared] = useState(false);
 
   const [activeEncounters, setActiveEncounters] = useState([]);
   const [patients, setPatients] = useState([]);
@@ -22,7 +23,7 @@ export default function NurseDashboard() {
   const fetchData = async () => {
     const [encRes, ptRes, invRes] = await Promise.all([
       supabase.from('encounters').select('*').eq('status', 'Queued'),
-      supabase.from('patients').select('*'),
+      supabase.from('patients').select('*').eq('is_archived', false),
       supabase.from('inventory').select('*')
     ]);
     if (encRes.data) setActiveEncounters(encRes.data);
@@ -40,6 +41,7 @@ export default function NurseDashboard() {
     setNotes('');
     setNextAppt('');
     setDispensedItems([]);
+    setIsCleared(false);
   };
 
   const handleCompleteConsultation = async () => {
@@ -48,7 +50,8 @@ export default function NurseDashboard() {
         status: 'Completed',
         vitals: vitals,
         diagnosis: notes,
-        next_appointment: nextAppt || null,
+        next_appointment: isCleared ? null : (nextAppt || null),
+        is_cleared: isCleared,
         sms_reminder_sent: false,
         dispensed_items: dispensedItems
       }).eq('id', activeEncounterId);
@@ -243,8 +246,30 @@ export default function NurseDashboard() {
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginTop: '1rem' }}>📅 Check-out</h3>
                 <div>
                   <label className="label">Schedule Next Visit</label>
-                  <input type="date" className="input" value={nextAppt} onChange={e => setNextAppt(e.target.value)} />
-                  {nextAppt && <p style={{ fontSize: '0.75rem', color: 'var(--primary-color)', marginTop: '0.5rem' }}>SMS Reminder will be active for this date.</p>}
+                  <input 
+                    type="date" 
+                    className="input" 
+                    value={nextAppt} 
+                    onChange={e => setNextAppt(e.target.value)} 
+                    disabled={isCleared}
+                    style={isCleared ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                  />
+                  {nextAppt && !isCleared && <p style={{ fontSize: '0.75rem', color: 'var(--primary-color)', marginTop: '0.5rem' }}>SMS Reminder will be active for this date.</p>}
+                </div>
+
+                <div style={{ marginTop: '1rem', padding: '1rem', background: isCleared ? '#dcfce7' : 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: `1px solid ${isCleared ? '#16a34a' : 'var(--border-color)'}`, transition: 'all 0.3s' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontWeight: 600 }}>
+                    <input 
+                      type="checkbox" 
+                      checked={isCleared} 
+                      onChange={e => setIsCleared(e.target.checked)}
+                      style={{ width: '18px', height: '18px' }}
+                    />
+                    Patient is Cleared / Discharged
+                  </label>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem', marginLeft: '2.25rem' }}>
+                    Select this if the patient has completed their treatment and no follow-up is required at this time.
+                  </p>
                 </div>
               </div>
             </div>

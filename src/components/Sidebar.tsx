@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
-import { UserPlus, Stethoscope, Package, FileText, LogOut, Shield, Calendar } from 'lucide-react';
+import { UserPlus, Users, Stethoscope, Package, FileText, LogOut, Shield, Calendar, Settings } from 'lucide-react';
 
 export default function Sidebar({ role, email }) {
   const pathname = usePathname();
@@ -37,6 +37,18 @@ export default function Sidebar({ role, email }) {
             </div>
             <Link href="/admin" className={`nav-item ${pathname === '/admin' ? 'active' : ''}`}>
               <Shield size={18} /> User Management
+            </Link>
+            <Link href="/admin/patients" className={`nav-item ${pathname === '/admin/patients' ? 'active' : ''}`}>
+              <Users size={18} /> Patient Management
+            </Link>
+            <Link href="/admin/archives" className={`nav-item ${pathname === '/admin/archives' ? 'active' : ''}`}>
+              <Package size={18} /> Archived Data
+            </Link>
+            <Link href="/admin/reports" className={`nav-item ${pathname === '/admin/reports' ? 'active' : ''}`}>
+              <FileText size={18} /> Health Reports
+            </Link>
+            <Link href="/admin/settings" className={`nav-item ${pathname === '/admin/settings' ? 'active' : ''}`}>
+              <Settings size={18} /> System Settings
             </Link>
           </>
         )}
