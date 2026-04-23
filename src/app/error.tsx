@@ -1,52 +1,33 @@
 'use client';
 
-import { useEffect } from 'react';
-import Link from 'next/link';
-
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
-  useEffect(() => {
-    // Log the error to an error reporting service
-    console.error('BHCMS Application Error:', error);
-  }, [error]);
-
+export default function Error({ error, reset }) {
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      background: 'var(--bg-primary)', 
-      color: 'var(--text-primary)',
-      textAlign: 'center',
-      padding: '2rem'
+    <div style={{
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'system-ui, sans-serif',
+      padding: '20px',
+      textAlign: 'center'
     }}>
-      <h1 style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--danger-color)', marginBottom: '1rem' }}>Something went wrong!</h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '500px' }}>
-        An unexpected error occurred in the application. We've logged the details and will look into it.
-      </p>
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <button
-          onClick={() => reset()}
-          className="btn btn-primary"
-        >
-          Try again
-        </button>
-        <Link href="/" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-          Go back home
-        </Link>
-      </div>
-      {error.digest && (
-        <p style={{ marginTop: '2rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-          Error ID: {error.digest}
-        </p>
-      )}
+      <h1>Something went wrong</h1>
+      <p style={{ color: '#666' }}>{error?.message || 'An unexpected error occurred'}</p>
+      <button 
+        onClick={() => reset()}
+        style={{
+          marginTop: '1rem',
+          padding: '0.5rem 1rem',
+          background: '#0070f3',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer'
+        }}
+      >
+        Try again
+      </button>
     </div>
   );
 }
