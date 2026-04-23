@@ -2,6 +2,8 @@ import "./globals.css";
 import LayoutWrapper from "../components/LayoutWrapper";
 import SmsNotifier from "../components/SmsNotifier";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "BHCMS | Barangay Health Center",
   description: "Offline-first health center management system for Philippines",

@@ -1,5 +1,7 @@
 "use client";
 import { useRouter } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Clock, Calendar, CheckCircle2, AlertCircle, Phone, ArrowRight, Shield, Stethoscope, HeartPulse, MapPin } from 'lucide-react';
