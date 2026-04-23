@@ -10,16 +10,21 @@ export default function ScheduleEditor() {
   const [successMsg, setSuccessMsg] = useState('');
 
   const fetchSchedules = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('weekly_schedules')
-      .select('*')
-      .order('order_idx', { ascending: true });
-    
-    if (data) {
-      setSchedules(data);
+    try {
+      const { data, error } = await supabase
+        .from('weekly_schedules')
+        .select('*')
+        .order('order_idx', { ascending: true });
+      
+      if (error) throw error;
+      if (data) {
+        setSchedules(data);
+      }
+    } catch (err) {
+      console.error('Error fetching schedules:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {

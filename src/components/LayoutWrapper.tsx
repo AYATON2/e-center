@@ -9,8 +9,10 @@ export default function LayoutWrapper({ children }) {
   const router = useRouter();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Check active session on load
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
@@ -47,13 +49,16 @@ export default function LayoutWrapper({ children }) {
     }
   };
 
-  if (loading) return (
+  if (loading || !mounted) return (
     <div style={{minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background: 'var(--bg-primary)', color: 'var(--primary-color)', fontSize: '1.25rem', fontWeight: 600}}>
       Verifying Security Block...
     </div>
   );
 
-  if (pathname === '/' || pathname === '/login') {
+  // Safely handle null pathname during static generation
+  const currentPath = pathname || '';
+
+  if (currentPath === '/' || currentPath === '/login' || currentPath === '/_not-found' || currentPath === '/404') {
     return <main>{children}</main>;
   }
   
