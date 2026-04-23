@@ -28,10 +28,10 @@ export default function LayoutWrapper({ children }) {
   }, [pathname]);
 
   const enforceRules = (currentSession) => {
-    if (pathname === '/') return; // Login page is completely unrestricted
+    if (pathname === '/' || pathname === '/login') return; 
     
     if (!currentSession) {
-      router.push('/');
+      router.push('/login');
       return;
     }
 
@@ -39,11 +39,11 @@ export default function LayoutWrapper({ children }) {
     
     // Hard restrictions blocking lateral role movement
     if (pathname.startsWith('/admin') && role !== 'Admin') {
-      router.push('/');
+      router.push('/login');
     } else if (pathname.startsWith('/nurse') && role !== 'Nurse' && role !== 'Admin') {
-      router.push('/');
+      router.push('/login');
     } else if (pathname.startsWith('/staff') && role !== 'Staff' && role !== 'Admin') {
-      router.push('/');
+      router.push('/login');
     }
   };
 
@@ -53,7 +53,7 @@ export default function LayoutWrapper({ children }) {
     </div>
   );
 
-  if (pathname === '/') {
+  if (pathname === '/' || pathname === '/login') {
     return <main>{children}</main>;
   }
   
