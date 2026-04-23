@@ -85,7 +85,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <label className="label">Temporary Password</label>
-              <input type="text" required minLength="6" className="input" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="Minimum 6 characters" />
+              <input type="text" required minLength={6} className="input" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="Minimum 6 characters" />
             </div>
             <div>
               <label className="label">System Role / Dashboard Access</label>
